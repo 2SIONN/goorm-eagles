@@ -2,12 +2,13 @@ import axios from 'axios'
 
 import { token } from './token'
 
-const BASE = import.meta.env.VITE_API_URL ? '/api' : (import.meta.env.VITE_API_URL ?? '')
+const BASE = import.meta.env.VITE_API_URL || '/api'
 
 // let refreshingPromise = null
 
 export const api = axios.create({
   baseURL: BASE,
+  timeout: 1000,
   headers: { 'Content-Type': 'application/json' },
 })
 
