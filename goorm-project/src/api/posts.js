@@ -1,11 +1,11 @@
-import { fetchApi } from '@/api/fetch'
+import { http } from '@/api/http'
 
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/posts`
-  : '/api/posts'
+const API_ROOT = import.meta.env.VITE_API_URL || ''
+const BASE_PATH = '/posts'
+const BASE_URL = API_ROOT ? `${API_ROOT}${BASE_PATH}` : BASE_PATH
 
 export const postsApi = {
-  list: ({ q, tag, page = 1, limit = 10 } = {}) => {
+  list: ({ q, tag, page = 1, limit = 100 } = {}) => {
     const params = new URLSearchParams()
     if (q) {
       params.set('q', q)
@@ -13,13 +13,18 @@ export const postsApi = {
     if (tag) {
       params.set('tag', tag)
     }
-    params.set('page', page)
-    params.set('limit', limit)
-    return fetchApi(`${BASE_URL}?${params.toString()}`, { auth: false })
+    params.set('page', String(page))
+    params.set('limit', String(limit))
+
+    return http(`${BASE_URL}?${params.toString()}`, { auth: false })
   },
-  get: (id) => fetchApi(`${BASE_URL}/${id}`, { auth: false }),
-  create: (payload) => fetchApi(BASE_URL, { method: 'POST', body: payload, auth: true }),
+
+  get: (id) => http(`${BASE_URL}/${id}`, { auth: false }),
+
+  create: (payload) => http(BASE_URL, { method: 'POST', body: payload, auth: true }),
+
   update: (id, payload) =>
-    fetchApi(`${BASE_URL}/${id}`, { method: 'PATCH', body: payload, auth: true }),
-  remove: (id) => fetchApi(`${BASE_URL}/${id}`, { method: 'DELETE', auth: true }),
+    http(`${BASE_URL}/${id}`, { method: 'PATCH', body: payload, auth: true }),
+
+  remove: (id) => http(`${BASE_URL}/${id}`, { method: 'DELETE', auth: true }),
 }

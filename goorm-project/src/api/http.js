@@ -10,19 +10,42 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // 로그인 시도 실패, 토큰 정보 삭제
-    console.error(error)
-    return Promise.reject(error)
-  }
-)
-
 api.interceptors.request.use((config) => {
-  // 인증되었고, 토큰이 있으면
   if (config.auth !== false && token.get()) {
     config.headers.Authorization = `Bearer ${token.get()}`
   }
   return config
 })
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error(error)
+    return Promise.reject(error)
+  }
+)
+
+/**
+ * fetchApi 스타일 범용 요청 함수
+ * @param {string} url 요청 URL
+ * @param {object} options method, body, auth 등
+ */
+export async function http(url, { method = 'GET', body, withAuth } = {}) {
+  try {
+    const res = await api.request({
+      url,
+      method,
+      data: body,
+      withAuth,
+    })
+    return res.data
+  } catch (err) {
+    const res = err.response
+    const data = res?.data || {}
+
+    const error = new Error(data?.error?.message || data?.message || 'Request failed')
+    error.data = data
+    error.status = res?.status
+    throw error
+  }
+}

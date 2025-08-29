@@ -23,7 +23,7 @@ export default function GuestbookPage() {
     setClientError('')
   }
 
-  // 목록 호출
+  // 목록 호출 useQuery
   const { data, isLoading, isError, error } = useQuery({
     queryKey: POSTS_KEY,
     queryFn: () => postsApi.list(postsParams),
@@ -31,16 +31,18 @@ export default function GuestbookPage() {
     staleTime: 30_000,
   })
 
-  // 작성
+  // 글 작성 useMutation
   const createPost = useMutation({
     mutationKey: ['post-create'],
     mutationFn: (payload) => postsApi.create(payload),
     onMutate: async (payload) => {
+      // 뮤테이션 실행 직전에(서버에 요청 보내기 전에) 호출
       setClientError('')
+      // 낙관적 업데이트로 넣어둔 임시 데이터가 안전하게 유지하기 위해 응답을 받지 않도록 쿼리 중단
       await qc.cancelQueries({ queryKey: ['posts'] })
       const prev = qc.getQueryData(POSTS_KEY)
 
-      // 임시 포스트 삽입 (피드 상단)
+      // 낙관적 업데이트를 위한 임시 포스트 삽입 (피드 상단)
       const tempId = `temp-${Date.now()}`
       const tempPost = {
         _id: tempId,
